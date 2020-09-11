@@ -1,55 +1,59 @@
-import {Component, OnInit} from "@angular/core";
+import { Component, OnInit } from '@angular/core';
 
-import {IProduct} from "./product"
-import {ProductService} from "./product.service"
+import { IProduct } from './product';
+import { ProductService } from './product.service';
 
 @Component({
-    selector: "pm-products",
-    templateUrl: "./product-list.component.html",
-    styleUrls: ["./product-list.component.css"]
+  selector: 'pm-products',
+  templateUrl: './product-list.component.html',
+  styleUrls: ['./product-list.component.css'],
 })
+export class ProductListComponent implements OnInit {
+  pageTitle: string = 'Product List!';
+  imageWidth: number = 50;
+  imageMargin: number = 2;
+  showImage: boolean = false;
+  filteredProducts: IProduct[] = [];
+  errorMessage: string;
 
-export class ProductListComponent implements OnInit{
-    pageTitle: string = 'Product List!';
-    imageWidth: number = 50;
-    imageMargin: number = 2;
-    showImage: boolean = false;
-    filteredProducts: IProduct[] ;
+  _listFilter: string;
+  get listFilter(): string {
+    return this._listFilter;
+  }
+  set listFilter(value: string) {
+    this._listFilter = value;
+    this.filteredProducts = this.listFilter
+      ? this.performFilter(this.listFilter)
+      : this.products;
+  }
 
-    _listFilter: string;
-    get listFilter(): string {
-      return this._listFilter;
-    }
-    set listFilter(value: string) {
-      this._listFilter = value;
-      this.filteredProducts = this.listFilter ? this.performFilter(this.listFilter) : this.products;
-    }
-    
-    products: IProduct[] = [];
+  products: IProduct[] = [];
 
-    constructor (private productService: ProductService){
-      
-      
-    }
+  constructor(private productService: ProductService) {}
 
-    onRatingClicked(message: string): void {
-      this.pageTitle = `Product List: + ${message}`;
-    }
+  onRatingClicked(message: string): void {
+    this.pageTitle = `Product List: + ${message}`;
+  }
 
-    performFilter(filterBy: string): IProduct[]{
-      filterBy = filterBy.toLocaleLowerCase();
-      return this.products.filter((product: IProduct) => 
-        product.productName.toLocaleLowerCase().indexOf(filterBy) !== -1)
+  performFilter(filterBy: string): IProduct[] {
+    filterBy = filterBy.toLocaleLowerCase();
+    return this.products.filter(
+      (product: IProduct) =>
+        product.productName.toLocaleLowerCase().indexOf(filterBy) !== -1
+    );
+  }
 
-    }
+  toggleImage(): void {
+    this.showImage = !this.showImage;
+  }
 
-    toggleImage(): void {
-        this.showImage = !this.showImage
-    }
-
-    ngOnInit(): void {
-        this.products = this.productService.getProducts();
+  ngOnInit(): void {
+    this.productService.getProducts().subscribe({
+      next: (products) => {
+        this.products = products;
         this.filteredProducts = this.products;
-    }
-
+      },
+      error: (err) => (this.errorMessage = err),
+    });
+  }
 }
